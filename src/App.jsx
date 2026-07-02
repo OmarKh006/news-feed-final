@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 function App() {
   const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   async function loadArticles(query = "") {
     const response = await fetch(
@@ -24,19 +25,28 @@ function App() {
   }
 
   useEffect(() => {
+    setLoading(true);
     loadArticles()
-      .then(setArticles)
+      .then((newDate) => {
+        setArticles(newDate);
+        setLoading(false);
+      })
       .catch((err) => console.error("Failed to load articles:", err));
   }, []);
 
   const handleSearchChange = (newQuery) => {
-    loadArticles(newQuery).then(setArticles);
+    loadArticles(newQuery)
+      .then((newDate) => {
+        setArticles(newDate);
+        setLoading(false);
+      })
+      .catch((err) => console.error("Failed to load articles:", err));
   };
 
   return (
     <Container>
       <NewsHeader onSearchChange={handleSearchChange} />
-      <NewsFeed articles={articles} />
+      <NewsFeed articles={articles} loading={loading} />
     </Container>
   );
 }
