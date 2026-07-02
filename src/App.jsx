@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 function App() {
   const [articles, setArticles] = useState([]);
 
-  async function loadArticles() {
+  async function loadArticles(query = "") {
     const response = await fetch(
-      `https://newsapi.org/v2/top-headlines?country=us&apiKey=${import.meta.env.VITE_API_KEY}`,
+      `https://newsapi.org/v2/top-headlines?q=${query}&country=us&apiKey=${import.meta.env.VITE_API_KEY}`,
     );
     const data = await response.json();
     return data.articles.map((article) => {
@@ -24,11 +24,18 @@ function App() {
   }
 
   useEffect(() => {
-    loadArticles().then(setArticles);
+    loadArticles()
+      .then(setArticles)
+      .catch((err) => console.error("Failed to load articles:", err));
   }, []);
+
+  const handleSearchChange = (newQuery) => {
+    loadArticles(newQuery).then(setArticles);
+  };
+
   return (
     <Container>
-      <NewsHeader />
+      <NewsHeader onSearchChange={handleSearchChange} />
       <NewsFeed articles={articles} />
     </Container>
   );
