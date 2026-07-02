@@ -1,15 +1,19 @@
 import Container from "@mui/material/Container";
 import NewsFeed from "./components/NewsFeed";
 import NewsHeader from "./components/NewsHeader";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { debounce } from "lodash";
 
 function App() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const controllerRef = useRef(null);
+  const debouncedAPICall = useRef(null);
 
-  async function loadArticles(query = "") {
+  async function loadArticles(query = "", signal) {
     const response = await fetch(
       `https://newsapi.org/v2/top-headlines?q=${query}&country=us&apiKey=${import.meta.env.VITE_API_KEY}`,
+      { signal },
     );
     const data = await response.json();
     return data.articles.map((article) => {
@@ -25,22 +29,51 @@ function App() {
   }
 
   useEffect(() => {
+    debouncedAPICall.current = debounce((newQuery) => {
+      controllerRef.current?.abort();
+
+      const controller = new AbortController();
+      controllerRef.current = controller;
+
+      setLoading(true);
+
+      loadArticles(newQuery, controller.signal)
+        .then((newData) => {
+          setArticles(newData);
+          setLoading(false);
+        })
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("Failed to load articles:", err);
+            setLoading(false);
+          }
+        });
+    }, 512);
+
+    const controller = new AbortController();
+    controllerRef.current = controller;
     setLoading(true);
-    loadArticles()
-      .then((newDate) => {
-        setArticles(newDate);
+
+    loadArticles("", controller.signal)
+      .then((newData) => {
+        setArticles(newData);
         setLoading(false);
       })
-      .catch((err) => console.error("Failed to load articles:", err));
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Failed to load articles:", err);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      debouncedAPICall.current?.cancel();
+      controllerRef.current?.abort();
+    };
   }, []);
 
   const handleSearchChange = (newQuery) => {
-    loadArticles(newQuery)
-      .then((newDate) => {
-        setArticles(newDate);
-        setLoading(false);
-      })
-      .catch((err) => console.error("Failed to load articles:", err));
+    debouncedAPICall.current?.(newQuery);
   };
 
   return (
