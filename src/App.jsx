@@ -107,13 +107,13 @@ function App() {
         </Typography>
       ) : null}
       <Footer>
-        <Button variant="outlined" onClick={previousClick}>
+        <Button variant="outlined" onClick={previousClick} disabled={loading}>
           Previous
         </Button>
         <Button
           variant="outlined"
           onClick={nextClick}
-          disabled={articles.length < PAGE_SIZE}
+          disabled={loading || articles.length < PAGE_SIZE}
         >
           Next
         </Button>

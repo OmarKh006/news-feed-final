@@ -1,26 +1,11 @@
 import NewsArticle from "./NewsArticle";
 import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
-import { v4 as uuidv4 } from "uuid";
+import LoadingArticle from "./LoadingArticle";
 
 const NewsFeed = (props) => {
   const { articles, loading, error } = props;
 
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="50vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!articles.length && !error) {
+  if (!loading && !articles.length && !error) {
     return (
       <Typography
         align="center"
@@ -35,10 +20,14 @@ const NewsFeed = (props) => {
 
   return (
     <div>
-      {articles.map((article) => {
-        article.uuid = uuidv4();
-        return <NewsArticle {...article} key={article.uuid}></NewsArticle>;
-      })}
+      {loading &&
+        Array.from({ length: 5 }).map((_, index) => (
+          <LoadingArticle key={index} />
+        ))}
+      {!loading &&
+        articles.map((article) => (
+          <NewsArticle {...article} key={article.url ?? article.title} />
+        ))}
     </div>
   );
 };
