@@ -16,6 +16,7 @@ function App() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [category, setCategory] = useState("general");
   const controllerRef = useRef(null);
   const debouncedAPICall = useRef(null);
   const pageNumber = useRef(1);
@@ -23,48 +24,54 @@ function App() {
 
   const PAGE_SIZE = 5;
 
-  async function loadArticles(query = "", signal, page) {
-    const response = await fetch(
-      `https://newsapi.org/v2/top-headlines?q=${query}&page=${page}&pageSize=${PAGE_SIZE}&country=us&apiKey=${import.meta.env.VITE_API_KEY}`,
-      { signal },
-    );
-    const data = await response.json();
-    if (data.status === "error") {
-      setError(data.message);
-      throw new Error(data.message);
-    }
-    return data.articles.map(
-      ({ title, description, author, publishedAt, urlToImage }) => ({
-        title,
-        description,
-        author,
-        publishedAt,
-        image: urlToImage,
-      }),
-    );
-  }
+  const loadArticles = useCallback(
+    async (query = "", signal, page) => {
+      const response = await fetch(
+        `https://newsapi.org/v2/top-headlines?category=${category}&q=${query}&page=${page}&pageSize=${PAGE_SIZE}&country=us&apiKey=${import.meta.env.VITE_API_KEY}`,
+        { signal },
+      );
+      const data = await response.json();
+      if (data.status === "error") {
+        setError(data.message);
+        throw new Error(data.message);
+      }
+      return data.articles.map(
+        ({ title, description, author, publishedAt, urlToImage }) => ({
+          title,
+          description,
+          author,
+          publishedAt,
+          image: urlToImage,
+        }),
+      );
+    },
+    [category],
+  );
 
-  const fetchAndSetArticles = useCallback((query, page) => {
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
+  const fetchAndSetArticles = useCallback(
+    (query, page) => {
+      controllerRef.current?.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
 
-    setLoading(true);
-    setError("");
+      setLoading(true);
+      setError("");
 
-    loadArticles(query, controller.signal, page)
-      .then((newData) => {
-        setArticles(newData);
-      })
-      .catch((err) => {
-        if (err.name !== "AbortError") {
-          console.error("Failed to load articles:", err);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      loadArticles(query, controller.signal, page)
+        .then((newData) => {
+          setArticles(newData);
+        })
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("Failed to load articles:", err);
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    },
+    [loadArticles],
+  );
 
   useEffect(() => {
     debouncedAPICall.current = debounce((newQuery) => {
@@ -73,16 +80,21 @@ function App() {
       fetchAndSetArticles(newQuery, pageNumber.current);
     }, 512);
 
-    fetchAndSetArticles(queryRef.current, pageNumber.current);
+    return () => debouncedAPICall.current?.cancel();
+  }, []);
 
-    return () => {
-      debouncedAPICall.current?.cancel();
-      controllerRef.current?.abort();
-    };
-  }, [fetchAndSetArticles]);
+  useEffect(() => {
+    fetchAndSetArticles(queryRef.current, pageNumber.current);
+    return () => controllerRef.current?.abort();
+  }, [category, fetchAndSetArticles]);
 
   const handleSearchChange = (newQuery) => {
     debouncedAPICall.current?.(newQuery);
+  };
+
+  const handleCategoryChange = (event) => {
+    setCategory(event.target.value);
+    pageNumber.current = 1;
   };
 
   const nextClick = () => {
@@ -99,7 +111,11 @@ function App() {
 
   return (
     <Container>
-      <NewsHeader onSearchChange={handleSearchChange} />
+      <NewsHeader
+        onSearchChange={handleSearchChange}
+        category={category}
+        onCategoryChange={handleCategoryChange}
+      />
       <NewsFeed articles={articles} loading={loading} error={error} />
       {error.length ? (
         <Typography color="error" align="center">

@@ -2,6 +2,8 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import SearchIcon from "@mui/icons-material/Search";
 import { styled } from "@mui/material/styles";
 
@@ -35,8 +37,28 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
+const StyledSelect = styled(Select)(({ theme }) => ({
+  color: theme.palette.action,
+  backgroundColor: theme.palette.common.white,
+  "&:before": {
+    borderColor: theme.palette.action,
+  },
+  "&:after": {
+    borderColor: theme.palette.action,
+  },
+  "& .MuiSelect-icon": {
+    color: theme.palette.action,
+  },
+  margin: theme.spacing(2),
+  width: 200,
+  height: 40,
+}));
+const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
+  color: theme.palette.text.primary,
+}));
+
 const NewsHeader = (props) => {
-  const { onSearchChange } = props;
+  const { onSearchChange, category, onCategoryChange } = props;
 
   const handleInputChange = (event) => {
     onSearchChange(event.target.value);
@@ -46,6 +68,17 @@ const NewsHeader = (props) => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6">NewsFeed App</Typography>
+
+        <StyledSelect value={category} onChange={onCategoryChange}>
+          <StyledMenuItem value="general">General</StyledMenuItem>
+          <StyledMenuItem value="business">Business</StyledMenuItem>
+          <StyledMenuItem value="entertainment">Entertainment</StyledMenuItem>
+          <StyledMenuItem value="health">Health</StyledMenuItem>
+          <StyledMenuItem value="science">Science</StyledMenuItem>
+          <StyledMenuItem value="sports">Sports</StyledMenuItem>
+          <StyledMenuItem value="technology">Technology</StyledMenuItem>
+        </StyledSelect>
+
         <Search>
           <SearchIconWrapper>
             <SearchIcon color="action" />
