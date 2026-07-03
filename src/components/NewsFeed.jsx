@@ -5,7 +5,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { v4 as uuidv4 } from "uuid";
 
 const NewsFeed = (props) => {
-  const { articles, loading } = props;
+  const { articles, loading, error } = props;
 
   if (loading) {
     return (
@@ -20,7 +20,7 @@ const NewsFeed = (props) => {
     );
   }
 
-  if (!articles.length) {
+  if (!articles.length && !error) {
     return (
       <Typography
         align="center"
