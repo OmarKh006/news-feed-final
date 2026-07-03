@@ -10,30 +10,37 @@ const StyledCard = styled(Card)(({ theme }) => ({
   margin: theme.spacing(2, 0),
 }));
 
+const StyledLink = styled("a")(({ theme }) => ({
+  textDecoration: "none",
+  color: theme.palette.text.primary,
+}));
+
 function NewsArticle(props) {
-  const { image, title, author, description, publishedAt } = props;
+  const { image, title, author, description, publishedAt, url } = props;
   return (
     <StyledCard>
-      <CardActionArea>
-        {image && (
-          <CardMedia
-            component="img"
-            height="200"
-            image={image}
-            alt="Sample article"
-          />
-        )}
-        {(title || description) && (
-          <CardContent>
-            <Typography gutterBottom variant="h6" component="div">
-              {title}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              {description}
-            </Typography>
-          </CardContent>
-        )}
-      </CardActionArea>
+      <StyledLink target="_blank" href={url}>
+        <CardActionArea>
+          {image && (
+            <CardMedia
+              component="img"
+              height="200"
+              image={image}
+              alt="Sample article"
+            />
+          )}
+          {(title || description) && (
+            <CardContent>
+              <Typography gutterBottom variant="h6" component="div">
+                {title}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {description}
+              </Typography>
+            </CardContent>
+          )}
+        </CardActionArea>
+      </StyledLink>
       {(author || publishedAt) && (
         <Box p={2}>
           <Typography variant="caption" color="textSecondary" display="block">

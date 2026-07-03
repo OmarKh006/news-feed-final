@@ -36,12 +36,13 @@ function App() {
         throw new Error(data.message);
       }
       return data.articles.map(
-        ({ title, description, author, publishedAt, urlToImage }) => ({
+        ({ title, description, author, publishedAt, urlToImage, url }) => ({
           title,
           description,
           author,
           publishedAt,
           image: urlToImage,
+          url,
         }),
       );
     },
